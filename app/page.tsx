@@ -1,12 +1,7 @@
-// app/page.tsx
-// app/page.tsx
-export const dynamic = "force-dynamic"; // ← keep this
-
-import NextDynamic from "next/dynamic"; // ← rename the import
-
-const ClientApp = NextDynamic(() => import("./ClientApp"), { ssr: false });
+// app/page.tsx  (Server Component)
+import ClientApp from "./ClientApp";
+   // <- plain import
 
 export default function Page() {
   return <ClientApp />;
 }
-
