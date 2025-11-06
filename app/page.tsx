@@ -12,6 +12,7 @@ export default function MeditationApp() {
   const [isRunning, setIsRunning] = useState(false);
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [secondsLeft, setSecondsLeft] = useState(minutes * 60);
+  const [phaseSecondsLeft, setPhaseSecondsLeft] = useState(pattern.inhale);
   const [history, setHistory] = useState<Session[]>([]);
   const [soundOn, setSoundOn] = useState(true);
   const [ambientOn, setAmbientOn] = useState(false);
@@ -29,7 +30,7 @@ export default function MeditationApp() {
     localStorage.setItem("meditation_history_v1", JSON.stringify(history));
   }, [history]);
 
-  // Reset seconds when minutes changes (idle only)
+  // handlereset seconds when minutes changes (idle only)
   useEffect(() => { if (!isRunning) setSecondsLeft(minutes * 60); }, [minutes, isRunning]);
 
   // Deriveds
@@ -101,6 +102,18 @@ const start = () => {
         return next;
       });
 
+const handleReset = () => {
+  if (timerRef.current) clearInterval(timerRef.current);
+  if (phaseTickRef.current) clearInterval(phaseTickRef.current);
+  timerRef.current = null;
+  phaseTickRef.current = null;
+
+  setIsRunning(false);
+  setSecondsLeft(minutes * 60);
+  setPhase("inhale");
+  setPhaseSecondsLeft(DEFAULT_PATTERN.inhale);
+};
+
 
       const stop = (completed = false) => {
   if (timerRef.current) clearInterval(timerRef.current);
@@ -110,7 +123,7 @@ const start = () => {
   setIsRunning(false);
 };
 
-const reset = () => {
+const handlereset = () => {
   if (timerRef.current) clearInterval(timerRef.current);
   if (phaseTickRef.current) clearInterval(phaseTickRef.current);
   timerRef.current = null;
@@ -159,6 +172,19 @@ const stop = (completed = false) => {
       .reduce((sum,h)=> sum + h.durationSec/60, 0));
   }, [history]);
 
+const handleReset = () => {
+  if (timerRef.current) clearInterval(timerRef.current);
+  if (phaseTickRef.current) clearInterval(phaseTickRef.current);
+  timerRef.current = null;
+  phaseTickRef.current = null;
+
+  setIsRunning(false);
+  setSecondsLeft(minutes * 60);
+  setPhase("inhale");
+  setPhaseSecondsLeft(DEFAULT_PATTERN.inhale);
+};
+
+
   return (
     <div className="min-h-screen text-white relative">
       {/* Naturist background */}
@@ -200,7 +226,9 @@ const stop = (completed = false) => {
               {!isRunning
                 ? <button onClick={start} className="rounded-xl bg-white px-4 py-2 text-black">Start</button>
                 : <button onClick={()=>stop(true)} className="rounded-xl bg-white px-4 py-2 text-black">Finish</button>}
-              <button onClick={reset} disabled={isRunning} className="rounded-xl bg-white/10 px-4 py-2">Reset</button>
+             <button onClick={handleReset} disabled={isRunning} className="rounded-xl bg-white/10 px-4 py-2">
+  reset
+</button>
             </div>
           </div>
 
