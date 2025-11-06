@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type Session = { id: string; startedAt: string; durationSec: number; pattern: string };

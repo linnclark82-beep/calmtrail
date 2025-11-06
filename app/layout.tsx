@@ -32,3 +32,4 @@ export default function RootLayout({
     </html>
   );
 }
+import SwRegister from "./SwRegister";
