@@ -12,7 +12,6 @@ export default function MeditationApp() {
   const [isRunning, setIsRunning] = useState(false);
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [secondsLeft, setSecondsLeft] = useState(minutes * 60);
-  const [phaseSecondsLeft, setPhaseSecondsLeft] = useState(pattern.inhale);
   const [history, setHistory] = useState<Session[]>([]);
   const [soundOn, setSoundOn] = useState(true);
   const [ambientOn, setAmbientOn] = useState(false);
@@ -68,54 +67,73 @@ export default function MeditationApp() {
   }, [ambientOn]);
 
   // Start / stop
-  const start = () => {
-    if (isRunning) return;
-    setIsRunning(true);
-    setPhase("inhale");
-    setPhaseSecondsLeft(pattern.inhale);
-    chime();
-    timerRef.current = setInterval(() => setSecondsLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
-    phaseTickRef.current = setInterval(() => {
-  setPhaseSecondsLeft((p: number) => {
+// Start / stop
+const start = () => {
+  if (isRunning) return;
+  setIsRunning(true);
+  setPhase("inhale");
+  setPhaseSecondsLeft(pattern.inhale);
 
-      setPhaseSecondsLeft((p) => {
-        if (p > 1) return p - 1;
-        setPhase((prev) => {
-          const next: "inhale" | "hold" | "exhale" =
-            prev === "inhale" ? (pattern.hold > 0 ? "hold" : "exhale")
-            : prev === "hold" ? "exhale"
-            : "inhale";
-          const dur = next === "inhale" ? pattern.inhale : next === "hold" ? pattern.hold : pattern.exhale;
-          setPhaseSecondsLeft(dur);
-          chime();
-          return next;
-        });
-        return 1;
+  // countdown (total time)
+  timerRef.current = setInterval(() => {
+    setSecondsLeft((s) => (s > 0 ? s - 1 : 0));
+  }, 1000);
+
+  // phase countdown + phase cycling
+  phaseTickRef.current = setInterval(() => {
+    setPhaseSecondsLeft((p) => {
+      if (p > 1) return p - 1;
+
+      // switch phase
+      setPhase((prev) => {
+        const next: "inhale" | "hold" | "exhale" =
+          prev === "inhale" ? "hold" : prev === "hold" ? "exhale" : "inhale";
+
+        const nextSeconds =
+          next === "inhale"
+            ? pattern.inhale
+            : next === "hold"
+            ? pattern.hold
+            : pattern.exhale;
+
+        // prime the next phase seconds
+        setPhaseSecondsLeft(nextSeconds);
+        return next;
       });
-    }, 1000);
-  };
 
-  const stop = (completed = false) => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (phaseTickRef.current) clearInterval(phaseTickRef.current);
-    timerRef.current = null; phaseTickRef.current = null;
-    setIsRunning(false);
-    setPhase("inhale");
-    setPhaseSecondsLeft(pattern.inhale);
-    if (completed) {
-      const dur = minutes * 60 - secondsLeft;
-      const entry: Session = {
-        id: crypto.randomUUID(),
-        startedAt: new Date(Date.now() - dur * 1000).toISOString(),
-        durationSec: dur,
-        pattern: `${pattern.inhale}-${pattern.hold}-${pattern.exhale}`,
-      };
-      setHistory((h) => [entry, ...h].slice(0, 500));
-    }
-  };
 
-  const reset = () => { stop(false); setSecondsLeft(minutes * 60); };
+      const stop = (completed = false) => {
+  if (timerRef.current) clearInterval(timerRef.current);
+  if (phaseTickRef.current) clearInterval(phaseTickRef.current);
+  timerRef.current = null;
+  phaseTickRef.current = null;
+  setIsRunning(false);
+};
 
+const reset = () => {
+  if (timerRef.current) clearInterval(timerRef.current);
+  if (phaseTickRef.current) clearInterval(phaseTickRef.current);
+  timerRef.current = null;
+  phaseTickRef.current = null;
+  setIsRunning(false);
+  setSecondsLeft(minutes * 60);
+  setPhase("inhale");
+  setPhaseSecondsLeft(DEFAULT_PATTERN.inhale);
+};
+
+      // we consumed the last second of the previous phase
+      return 0; // still return a number to satisfy TS
+    });
+  }, 1000);
+};
+
+const stop = (completed = false) => {
+  if (timerRef.current) clearInterval(timerRef.current);
+  if (phaseTickRef.current) clearInterval(phaseTickRef.current);
+  timerRef.current = null;
+  phaseTickRef.current = null;
+  setIsRunning(false);
+};
   // Auto-finish
   useEffect(() => { if (isRunning && secondsLeft <= 0) stop(true); }, [secondsLeft, isRunning]);
 
@@ -298,6 +316,4 @@ function BreathCircle({
     </div>
   );
 }
-const [secondsLeft, setSecondsLeft] = useState<number>(minutes * 60);
-const [phaseSecondsLeft, setPhaseSecondsLeft] = useState<number>(pattern.inhale);
-
+const [phaseSecondsLeft, setPhaseSecondsLeft] = useState<number>(DEFAULT_PATTERN.inhale);
