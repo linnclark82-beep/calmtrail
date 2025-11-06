@@ -295,3 +295,6 @@ function BreathCircle({
     </div>
   );
 }
+const [secondsLeft, setSecondsLeft] = useState<number>(minutes * 60);
+const [phaseSecondsLeft, setPhaseSecondsLeft] = useState<number>(pattern.inhale);
+
