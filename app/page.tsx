@@ -3,11 +3,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 type Session = { id: string; startedAt: string; durationSec: number; pattern: string };
 
-const DEFAULT_PATTERN = { inhale: 4, hold: 2, exhale: 6 } as const;
+type BreathPattern = { inhale: number; hold: number; exhale: number };
+const DEFAULT_PATTERN: BreathPattern = { inhale: 4, hold: 2, exhale: 6 };
 
 export default function MeditationApp() {
   const [minutes, setMinutes] = useState(5);
-  const [pattern, setPattern] = useState(DEFAULT_PATTERN);
+  const [pattern, setPattern] = useState<BreathPattern>(DEFAULT_PATTERN);
   const [isRunning, setIsRunning] = useState(false);
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [secondsLeft, setSecondsLeft] = useState(minutes * 60);
@@ -75,6 +76,8 @@ export default function MeditationApp() {
     chime();
     timerRef.current = setInterval(() => setSecondsLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
     phaseTickRef.current = setInterval(() => {
+  setPhaseSecondsLeft((p: number) => {
+
       setPhaseSecondsLeft((p) => {
         if (p > 1) return p - 1;
         setPhase((prev) => {
